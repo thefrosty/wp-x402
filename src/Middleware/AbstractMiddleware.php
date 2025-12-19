@@ -191,4 +191,3 @@ abstract class AbstractMiddleware implements WpHooksInterface
         return rest_convert_error_to_response($error);
     }
 }
-

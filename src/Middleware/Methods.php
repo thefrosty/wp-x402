@@ -79,7 +79,7 @@ trait Methods
 
     /**
      * Reject all requests to the route(s).
-     * @param mixed $input
+     * @param array ...$input
      * @return void
      */
     public function reject(...$input): void
