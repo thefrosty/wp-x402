@@ -1,2 +1,2 @@
-# wp-x402
+# x402
 A payments middleware for WordPress.
