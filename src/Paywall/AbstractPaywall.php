@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace TheFrosty\WpX402\Paywall;
 
 use Symfony\Component\HttpFoundation\JsonResponse;
-use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use TheFrosty\WpUtilities\Api\WpRemote;
 use TheFrosty\WpUtilities\Plugin\AbstractContainerProvider;
@@ -17,8 +16,9 @@ use WP_Http;
  * Class AbstractPaywall
  * @package TheFrosty\WpX402\Paywall
  */
-abstract class AbstractPaywall
-    extends AbstractContainerProvider implements HttpFoundationRequestInterface, PaywallInterface
+abstract class AbstractPaywall extends AbstractContainerProvider implements
+    HttpFoundationRequestInterface,
+    PaywallInterface
 {
 
     use HttpFoundationRequestTrait, WpRemote;
