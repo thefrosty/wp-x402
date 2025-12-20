@@ -25,7 +25,6 @@ use function TheFrosty\WpX402\getPrice;
 use function TheFrosty\WpX402\getWallet;
 use function TheFrosty\WpX402\telemetry;
 use function wp_remote_retrieve_response_code;
-use const FILTER_VALIDATE_BOOL;
 
 /**
  * Class Payment
@@ -53,16 +52,14 @@ class ForBots extends AbstractPaywall
             return;
         }
 
-        $request = $this->getRequest();
-        $is_bot_param = filter_var($request?->query->get('bot'), FILTER_VALIDATE_BOOL) === true;
-        $user_agent = $request?->server->get('HTTP_USER_AGENT', '');
+        $user_agent = $this->getRequest()?->server->get('HTTP_USER_AGENT', '');
 
         $agents = Bots::getAgents();
         if (!$agents) {
             return;
         }
 
-        $is_bot_agent = (bool)$request?->query->get('fakeBot', false);
+        $is_bot_agent = false;
         foreach (array_keys($agents) as $agent) {
             if (stripos($user_agent, $agent) !== false) {
                 $is_bot_agent = true;
@@ -70,7 +67,7 @@ class ForBots extends AbstractPaywall
             }
         }
 
-        if (!$is_bot_param && !$is_bot_agent) {
+        if (!$is_bot_agent) {
             return;
         }
 
@@ -78,7 +75,7 @@ class ForBots extends AbstractPaywall
         $url = Api::getApiUrl();
 
         // 3. Check for Payment Header.
-        $payment_hash = $this->getPaymentHash($request);
+        $payment_hash = $this->getPaymentHash();
 
         // Scenario A: No Payment Hash -> Return 402 Offer.
         if (!$payment_hash) {
@@ -99,7 +96,7 @@ class ForBots extends AbstractPaywall
             exitOrThrow();
         }
 
-        // Scenario B: Verify Payment Hash with Brain (Backend).
+        // Scenario B: Verify Payment Hash.
         $response = Api::wpRemote($url, [Api::ACTION => Api::ACTION_VERIFY, 'paymentHash' => $payment_hash]);
 
         if (is_wp_error($response)) {
