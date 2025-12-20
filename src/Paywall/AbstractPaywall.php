@@ -25,16 +25,15 @@ abstract class AbstractPaywall
 
     /**
      * Return the payment hash from the request.
-     * @param Request|null $request
      * @return string|null
      */
-    protected function getPaymentHash(Request|null $request): ?string
+    protected function getPaymentHash(): ?string
     {
-        if ($request?->server->has('HTTP_X_PAYMENT_HASH')) {
-            return $request?->server->get('HTTP_X_PAYMENT_HASH');
+        if ($this->getRequest()?->server->has('HTTP_X_PAYMENT_HASH')) {
+            return $this->getRequest()?->server->get('HTTP_X_PAYMENT_HASH');
         }
-        if ($request?->server->has('HTTP_X_PAYMENT')) {
-            return $request?->server->get('HTTP_X_PAYMENT');
+        if ($this->getRequest()?->server->has('HTTP_X_PAYMENT')) {
+            return $this->getRequest()?->server->get('HTTP_X_PAYMENT');
         }
 
         return null;
