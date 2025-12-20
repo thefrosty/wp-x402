@@ -57,13 +57,6 @@ class ForBots extends AbstractPaywall
         $is_bot_param = filter_var($request?->query->get('bot'), FILTER_VALIDATE_BOOL) === true;
         $user_agent = $request?->server->get('HTTP_USER_AGENT', '');
 
-        // --- SEO WHITELIST ---
-        // Allow Googlebot (Search Indexing) to access content for free.
-        // BUT block Google-Extended (AI Training) -> they must pay.
-        if (stripos($user_agent, 'Googlebot') !== false && stripos($user_agent, 'Google-Extended') === false) {
-            return;
-        }
-
         $agents = Bots::getAgents();
         if (!$agents) {
             return;
