@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace TheFrosty\WpX402;
 
 use Dwnload\WpSettingsApi\Api\Options;
+use NumberFormatter;
 use TheFrosty\WpX402\Api\Api;
 use TheFrosty\WpX402\Middleware\Middleware;
 use TheFrosty\WpX402\Middleware\Rejection;
@@ -19,7 +20,9 @@ use function sanitize_text_field;
  */
 function getPrice(): string
 {
-    return sanitize_text_field(getSetting(Settings::PRICE, PaywallInterface::DEFAULT_PRICE));
+    $price = (float)getSetting(Settings::PRICE, PaywallInterface::DEFAULT_PRICE);
+    $formatter = new NumberFormatter('en_US', NumberFormatter::CURRENCY);
+    return sanitize_text_field($formatter->formatCurrency($price, 'USD'));
 }
 
 /**
