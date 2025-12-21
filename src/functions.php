@@ -4,46 +4,11 @@ declare(strict_types=1);
 
 namespace TheFrosty\WpX402;
 
-use Dwnload\WpSettingsApi\Api\Options;
-use NumberFormatter;
 use TheFrosty\WpX402\Api\Api;
 use TheFrosty\WpX402\Middleware\Middleware;
 use TheFrosty\WpX402\Middleware\Rejection;
-use TheFrosty\WpX402\Paywall\PaywallInterface;
 use TheFrosty\WpX402\Settings\Settings;
 use TheFrosty\WpX402\Telemetry\EventType;
-use function sanitize_text_field;
-
-/**
- * Return the price setting.
- * @return string
- */
-function getPrice(): string
-{
-    $price = (float)getSetting(Settings::PRICE, PaywallInterface::DEFAULT_PRICE);
-    $formatter = new NumberFormatter('en_US', NumberFormatter::CURRENCY);
-    return sanitize_text_field($formatter->formatCurrency($price, 'USD'));
-}
-
-/**
- * Return the wallet setting.
- * @return string
- */
-function getWallet(): string
-{
-    return sanitize_text_field(getSetting(Settings::WALLET, PaywallInterface::TESTNET_WALLET));
-}
-
-/**
- * Get our general setting by key.
- * @param string $key
- * @param mixed|null $default
- * @return mixed
- */
-function getSetting(string $key, mixed $default = null): mixed
-{
-    return Options::getOption($key, Settings::GENERAL_SETTINGS, $default);
-}
 
 /**
  * Returns the Middleware.
@@ -81,8 +46,8 @@ function telemetry(EventType $event_type, array $meta = []): void
         Api::ACTION => Api::ACTION_COLLECT,
         'event_type' => $event_type->value,
         'project_type' => 'wordpress-plugin',
-        'wallet' => getWallet(),
-        'amount' => getPrice(),
+        'wallet' => Settings::getWallet(),
+        'amount' => Settings::getPrice(),
         'meta' => $meta,
     ];
 

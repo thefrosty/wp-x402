@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace TheFrosty\WpX402\Settings;
 
+use Dwnload\WpSettingsApi\Api\Options;
 use Dwnload\WpSettingsApi\Api\PluginSettings;
 use Dwnload\WpSettingsApi\Api\SettingField;
 use Dwnload\WpSettingsApi\Api\SettingSection;
@@ -12,8 +13,11 @@ use Dwnload\WpSettingsApi\Settings\FieldTypes;
 use Dwnload\WpSettingsApi\Settings\SectionManager;
 use Dwnload\WpSettingsApi\SettingsApiFactory;
 use Dwnload\WpSettingsApi\WpSettingsApi;
+use NumberFormatter;
 use TheFrosty\WpUtilities\Plugin\AbstractContainerProvider;
 use TheFrosty\WpX402\Api\Api;
+use TheFrosty\WpX402\Networks\Mainnet;
+use TheFrosty\WpX402\Networks\Testnet;
 use TheFrosty\WpX402\Paywall\PaywallInterface;
 use TheFrosty\WpX402\ServiceProvider;
 use function __;
@@ -32,6 +36,7 @@ class Settings extends AbstractContainerProvider
 {
     public const string GENERAL_SETTINGS = self::PREFIX . 'general_settings';
     public const string WALLET = 'wallet';
+    public const string NETWORK = 'network';
     public const string PRICE = 'price';
     private const string PREFIX = 'wp_x402_';
     private const string DOMAIN = 'wp-x402';
@@ -53,6 +58,55 @@ class Settings extends AbstractContainerProvider
             'prefix' => self::PREFIX,
             'version' => $version,
         ]);
+    }
+
+    /**
+     * Return the wallet setting.
+     * @return string
+     */
+    public static function getWallet(): string
+    {
+        return sanitize_text_field(self::getSetting(self::WALLET, PaywallInterface::TESTNET_WALLET));
+    }
+
+    /**
+     * Return the network setting.
+     * @return string
+     */
+    public static function getNetwork(): string
+    {
+        return sanitize_text_field(self::getSetting(self::NETWORK, 'testnet'));
+    }
+
+    /**
+     * Return the price setting.
+     * @return string
+     */
+    public static function getPrice(): string
+    {
+        $price = (float)self::getSetting(self::PRICE, PaywallInterface::DEFAULT_PRICE);
+        $formatter = new NumberFormatter('en_US', NumberFormatter::CURRENCY);
+        return sanitize_text_field($formatter->formatCurrency($price, 'USD'));
+    }
+
+    /**
+     * Is the Mainnet selected?
+     * @return bool
+     */
+    public static function isMainnet(): bool
+    {
+        return self::getNetwork() === Mainnet::class;
+    }
+
+    /**
+     * Get our option key in our general setting index.
+     * @param string $key
+     * @param mixed|null $default
+     * @return mixed
+     */
+    public static function getSetting(string $key, mixed $default = null): mixed
+    {
+        return Options::getOption($key, self::GENERAL_SETTINGS, $default);
     }
 
     /**
@@ -97,6 +151,21 @@ class Settings extends AbstractContainerProvider
             new SettingSection([
                 SettingSection::SECTION_ID => self::GENERAL_SETTINGS, // Unique section ID.
                 SettingSection::SECTION_TITLE => 'General Settings',
+            ])
+        );
+
+        $field_manager->addField(
+            new SettingField([
+                SettingField::NAME => self::NETWORK,
+                SettingField::LABEL => esc_html__('Network', 'wp-x402'),
+                SettingField::DESC => esc_html__('Blockchain infrastructure.', 'wp-x402'),
+                SettingField::DEFAULT => Testnet::class,
+                SettingField::TYPE => FieldTypes::FIELD_TYPE_SELECT,
+                SettingField::OPTIONS => [
+                    Testnet::class => esc_html__('Testnet (development, testing, or QA)', 'wp-x402'),
+                    Mainnet::class => esc_html__('Mainnet (production-grade transactions)', 'wp-x402'),
+                ],
+                SettingField::SECTION_ID => $settings_section_id,
             ])
         );
 
