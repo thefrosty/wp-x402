@@ -127,7 +127,8 @@ class ForBots extends AbstractPaywall
                 'id' => $post->ID,
                 'date' => get_the_date('c', $post),
             ];
-            $this->sendJsonResponse($data, WP_Http::BAD_REQUEST);
+            $data = apply_filters('wp_x402_response_data', $data, $post);
+            $this->sendJsonResponse($data, WP_Http::ACCEPTED);
 
             // Telemetry: Success.
             telemetry(EventType::SUCCESS, ['hash' => $payment_hash]);
