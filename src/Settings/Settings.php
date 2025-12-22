@@ -21,12 +21,18 @@ use TheFrosty\WpX402\Networks\Testnet;
 use TheFrosty\WpX402\Paywall\PaywallInterface;
 use TheFrosty\WpX402\ServiceProvider;
 use function __;
+use function add_settings_error;
 use function array_unshift;
 use function esc_attr__;
 use function esc_html__;
 use function menu_page_url;
 use function sanitize_text_field;
 use function sprintf;
+use function str_replace;
+use function strtoupper;
+use function wp_add_inline_script;
+use function wp_enqueue_script;
+use function wp_register_script;
 
 /**
  * Class Settings
@@ -35,9 +41,10 @@ use function sprintf;
 class Settings extends AbstractContainerProvider
 {
     public const string GENERAL_SETTINGS = self::PREFIX . 'general_settings';
-    public const string WALLET = 'wallet';
+    public const string ACCOUNT = 'account';
     public const string NETWORK = 'network';
     public const string PRICE = 'price';
+    public const string WALLET = '%s_wallet';
     private const string PREFIX = 'wp_x402_';
     private const string DOMAIN = 'wp-x402';
     private const string MENU_SLUG = self::DOMAIN . '-settings';
@@ -66,7 +73,7 @@ class Settings extends AbstractContainerProvider
      */
     public static function getWallet(): string
     {
-        return sanitize_text_field(self::getSetting(self::WALLET, PaywallInterface::TESTNET_WALLET));
+        return sanitize_text_field(self::getSetting(self::WALLET, ''));
     }
 
     /**
@@ -117,6 +124,7 @@ class Settings extends AbstractContainerProvider
     public function addHooks(): void
     {
         $this->addAction(WpSettingsApi::HOOK_INIT, [$this, 'init'], 10, 3);
+        $this->addAction('admin_enqueue_scripts', [$this, 'adminScripts']);
         $this->addFilter('plugin_action_links_' . $this->getPlugin()->getBasename(), [$this, 'addSettingsLink']);
     }
 
@@ -169,30 +177,39 @@ class Settings extends AbstractContainerProvider
             ])
         );
 
+        $accounts = $this->getAccounts();
+
         $field_manager->addField(
             new SettingField([
-                SettingField::NAME => self::WALLET,
-                SettingField::LABEL => esc_html__('Wallet', 'wp-x402'),
-                SettingField::DESC => esc_html__('Merchant Wallet Address.', 'wp-x402'),
-                SettingField::DEFAULT => PaywallInterface::TESTNET_WALLET,
-                SettingField::TYPE => FieldTypes::FIELD_TYPE_TEXT,
-                SettingField::SANITIZE => function (mixed $value): string {
-                    $validator = $this->getContainer()?->get(ServiceProvider::WALLET_ADDRESS_VALIDATOR);
-                    if (Api::isValidWallet($validator, $value)) {
-                        return sanitize_text_field($value);
-                    }
-
-                    add_settings_error(
-                        self::WALLET,
-                        'invalid_wallet_address',
-                        esc_html__('Invalid or unsupported wallet address.', 'wp-x402')
-                    );
-
-                    return '';
-                },
+                SettingField::NAME => self::ACCOUNT,
+                SettingField::LABEL => esc_html__('Account', 'wp-x402'),
+                SettingField::DESC => esc_html__(
+                // phpcs:ignore Generic.Files.LineLength.TooLong
+                    'Accounts refer to an address on a blockchain that has the ability to sign transactions on behalf of the address, allowing you to not only send and receive funds, but also interact with smart contracts. Cryptographically, an account corresponds to a private/public key pair.',
+                    'wp-x402'
+                ),
+                SettingField::DEFAULT => array_key_first($accounts),
+                SettingField::TYPE => FieldTypes::FIELD_TYPE_SELECT,
+                SettingField::OPTIONS => $accounts,
                 SettingField::SECTION_ID => $settings_section_id,
             ])
         );
+
+        foreach ($this->getAccounts() as $account => $label) {
+            $field_manager->addField(
+                new SettingField([
+                    SettingField::NAME => sprintf(self::WALLET, $account),
+                    SettingField::LABEL => sprintf('%s %s', $label, esc_html__('Wallet', 'wp-x402')),
+                    SettingField::DESC => esc_html__('Merchant Wallet Address.', 'wp-x402'),
+                    SettingField::DEFAULT => Testnet::tryValue(sprintf('ASSET_%s', strtoupper($account))),
+                    SettingField::TYPE => FieldTypes::FIELD_TYPE_TEXT,
+                    SettingField::SANITIZE => function (mixed $value, array $settings, string $key): string {
+                        return $this->validateWallet($value, $settings, $key);
+                    },
+                    SettingField::SECTION_ID => $settings_section_id,
+                ])
+            );
+        }
 
         $field_manager->addField(
             new SettingField([
@@ -218,6 +235,41 @@ class Settings extends AbstractContainerProvider
         );
     }
 
+    protected function adminScripts(string $hook): void
+    {
+        if ($hook !== 'settings_page_' . self::MENU_SLUG) {
+            return;
+        }
+
+        wp_register_script(self::DOMAIN, '');
+        wp_enqueue_script(self::DOMAIN);
+        $data = <<<'SCRIPT'
+document.addEventListener('DOMContentLoaded', function () {
+  const select = document.querySelector('select[name*="account"]')
+  if (select) {
+    const wallets = document.querySelectorAll('input[name*="_wallet"]')
+    wallets.forEach((wallet) => {
+      if (!wallet.id.includes(select.value)) {
+        wallet.closest('tr').style.display = 'none'
+      }
+    })
+  }
+  select.addEventListener('change', function () {
+    const wallets = document.querySelectorAll('input[name*="_wallet"]')
+    wallets.forEach((wallet) => {
+      if (!wallet.id.includes(this.value)) {
+        wallet.closest('tr').style.display = 'none'
+        return
+      }
+      wallet.closest('tr').style.display = ''
+    })
+  })
+})
+
+SCRIPT;
+        wp_add_inline_script(self::DOMAIN, $data);
+    }
+
     /**
      * Add settings page link to the plugins page.
      * @param array $actions
@@ -236,5 +288,48 @@ class Settings extends AbstractContainerProvider
         );
 
         return $actions;
+    }
+
+    /**
+     * Validate the wallet setting value.
+     * @param mixed $value The passed value.
+     * @param array $settings The settings $_POST array.
+     * @param string $key The current settings key.
+     * @return string
+     */
+    protected function validateWallet(mixed $value, array $settings, string $key): string
+    {
+        $validator = $this->getContainer()?->get(ServiceProvider::WALLET_ADDRESS_VALIDATOR);
+        if (Api::isValidWallet($validator, $value)) {
+            return sanitize_text_field($value);
+        }
+
+        // Don't add an error notice on empty value.
+        if ($value === '') {
+            return $value;
+        }
+
+        add_settings_error(
+            $key,
+            'invalid_wallet_address',
+            sprintf(
+                esc_html__('%s: Invalid or unsupported wallet address.', 'wp-x402'),
+                $this->getAccounts()[str_replace('_wallet', '', $key)]
+            ),
+        );
+
+        return '';
+    }
+
+    /**
+     * Get allowed accounts.
+     * @return array
+     */
+    private function getAccounts(): array
+    {
+        return [
+            'base' => esc_html__('EVM', 'wp-x402'),
+            'solana' => esc_html__('Solana', 'wp-x402'),
+        ];
     }
 }
