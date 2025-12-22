@@ -43,9 +43,9 @@ abstract class AbstractMiddleware implements WpHooksInterface
 
     /**
      * Route input provided to compare inbound route against.
-     * @var string
+     * @var string|null
      */
-    protected string $routeInput;
+    protected ?string $routeInput = null;
 
     /**
      * Determines if all requests should be rejected.
@@ -61,9 +61,9 @@ abstract class AbstractMiddleware implements WpHooksInterface
 
     /**
      * Response object provided to check hook.
-     * @var WP_Error|WP_HTTP_Response
+     * @var WP_Error|WP_REST_Response
      */
-    protected WP_Error|WP_HTTP_Response $response;
+    protected WP_Error|WP_REST_Response $response;
 
     public function addHooks(): void
     {
@@ -89,8 +89,7 @@ abstract class AbstractMiddleware implements WpHooksInterface
 
     /**
      * Check inbound request against registered middleware.
-     * @param WP_Error|WP_HTTP_Response|WP_REST_Response $response Result to send to the client. Usually a
-     *     `WP_REST_Response`.
+     * @param WP_Error|WP_HTTP_Response|WP_REST_Response $response Result to send to the client.
      * @return WP_Error|WP_HTTP_Response|WP_REST_Response
      */
     protected function check(
