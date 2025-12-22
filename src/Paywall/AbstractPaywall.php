@@ -35,6 +35,9 @@ abstract class AbstractPaywall extends AbstractContainerProvider implements
         if ($this->getRequest()?->server->has('HTTP_X_PAYMENT')) {
             return $this->getRequest()?->server->get('HTTP_X_PAYMENT');
         }
+        if ($this->getRequest()?->server->has('HTTP_X_PAYMENT_RESPONSE')) {
+            return $this->getRequest()?->server->get('HTTP_X_PAYMENT_RESPONSE');
+        }
 
         return null;
     }
