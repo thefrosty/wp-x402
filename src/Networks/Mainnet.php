@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace TheFrosty\WpX402\Networks;
 
+use WebdevCave\EnumIndexAccessor\BackedEnumIndexAccessor;
+
 /**
  * Live, fully operational blockchain with real transactions and actual assets.
  * EVM Networks: eip155:{chainId} where chainId is the EVM chain ID
@@ -13,6 +15,8 @@ namespace TheFrosty\WpX402\Networks;
  */
 enum Mainnet: string implements Network
 {
+    use BackedEnumIndexAccessor;
+
     // USDC Contract Addresses: https://developers.circle.com/stablecoins/usdc-contract-addresses.
     case ASSET_BASE = '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913'; // phpcs:ignore
     case ASSET_SOLANA = 'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v'; // phpcs:ignore

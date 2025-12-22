@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace TheFrosty\WpX402\Networks;
 
+use WebdevCave\EnumIndexAccessor\BackedEnumIndexAccessor;
+
 /**
  * Sandbox environments for testing smart contracts, dapps, and other blockchain functionality without risking real
  * funds. You can obtain test currencies from faucets.
@@ -14,6 +16,8 @@ namespace TheFrosty\WpX402\Networks;
  */
 enum Testnet: string implements Network
 {
+    use BackedEnumIndexAccessor;
+
     // USDC Contract Addresses: https://developers.circle.com/stablecoins/usdc-contract-addresses.
     case ASSET_BASE = '0x036CbD53842c5426634e7929541eC2318f3dCF7e'; // phpcs:ignore
     case ASSET_SOLANA = '4zMMC9srt5Ri5X14GAgXhaHii3GnPAEERYPJgZJDncDU'; // phpcs:ignore
