@@ -4,11 +4,13 @@ declare(strict_types=1);
 
 namespace TheFrosty\WpX402\Models\PaymentRequired;
 
+use TheFrosty\WpUtilities\Models\BaseModel;
+
 /**
  * Class Payload
  * @package TheFrosty\WpX402\Models
  */
-class Payload
+class Payload extends BaseModel
 {
 
     protected string $signature;
