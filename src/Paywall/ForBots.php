@@ -36,7 +36,7 @@ use function wp_remote_retrieve_response_code;
 use const JSON_THROW_ON_ERROR;
 
 /**
- * Class Payment
+ * Class ForBots
  * @package TheFrosty\WpX402\Paywall
  */
 class ForBots extends AbstractPaywall
