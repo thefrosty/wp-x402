@@ -92,23 +92,24 @@ class ForBots extends AbstractPaywall
         $is_mainnet = Settings::isMainnet();
 
         $payment_required = new PaymentRequired([
-            PaymentRequired::VERSION => 2,
             PaymentRequired::ERROR => esc_html__('PAYMENT-SIGNATURE header is required', 'wp-x402'),
             PaymentRequired::RESOURCE => [
                 UrlResource::URL => get_permalink(),
-                UrlResource::DESCRIPTION => '',
+                UrlResource::DESCRIPTION => Entitlement::PAYMENT_REQUIRED->label(),
                 UrlResource::MIME_TYPE => 'text/html',
             ],
             PaymentRequired::ACCEPTS => [
-                Accepts::SCHEME => 'exact',
-                Accepts::NETWORK => $is_mainnet ? Mainnet::BASE->value : Testnet::BASE->value,
-                Accepts::AMOUNT => Settings::getPrice(),
-                Accepts::ASSET => $is_mainnet ? Mainnet::ASSET_BASE->value : Testnet::ASSET_BASE->value,
-                Accepts::PAY_TO => $wallet,
-                Accepts::MAX_TIMEOUT_SECONDS => 60,
-                Accepts::EXTRA => [
-                    'name' => 'USDC',
-                    'version' => 2,
+                [
+                    Accepts::SCHEME => 'exact',
+                    Accepts::NETWORK => $is_mainnet ? Mainnet::BASE->value : Testnet::BASE->value,
+                    Accepts::AMOUNT => Settings::getPrice(),
+                    Accepts::ASSET => $is_mainnet ? Mainnet::ASSET_BASE->value : Testnet::ASSET_BASE->value,
+                    Accepts::PAY_TO => $wallet,
+                    Accepts::MAX_TIMEOUT_SECONDS => 60,
+                    Accepts::EXTRA => [
+                        'name' => 'USDC',
+                        'version' => 2,
+                    ],
                 ],
             ],
         ]);
@@ -121,7 +122,7 @@ class ForBots extends AbstractPaywall
             status_header(WP_Http::PAYMENT_REQUIRED);
 
             $this->sendJsonResponse(
-                [PaymentRequired::ERROR => esc_html__('Payment required', 'wp-x402')],
+                [PaymentRequired::ERROR => Entitlement::PAYMENT_REQUIRED->label()],
                 WP_Http::PAYMENT_REQUIRED,
                 [
                     Api::HEADER_PAYMENT_REQUIRED => base64_encode(
