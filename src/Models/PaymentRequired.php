@@ -7,7 +7,7 @@ namespace TheFrosty\WpX402\Models;
 use TheFrosty\WpUtilities\Models\BaseModel;
 use TheFrosty\WpX402\Models\PaymentRequired\Accepts;
 use TheFrosty\WpX402\Models\PaymentRequired\Payload;
-use TheFrosty\WpX402\Models\PaymentRequired\Resource;
+use TheFrosty\WpX402\Models\PaymentRequired\UrlResource;
 
 /**
  * Class PaymentRequired
@@ -46,16 +46,16 @@ class PaymentRequired extends BaseModel
         $this->error = $error;
     }
 
-    protected Resource $resource;
+    protected UrlResource $resource;
 
-    public function getResource(): Resource
+    public function getResource(): UrlResource
     {
         return $this->resource;
     }
 
     public function setResource(array $resource): void
     {
-        $this->resource = new Resource($resource);
+        $this->resource = new UrlResource($resource);
     }
 
     protected array $accepts;

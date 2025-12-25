@@ -8,7 +8,7 @@ use TheFrosty\WpX402\Api\Api;
 use TheFrosty\WpX402\Api\Bots;
 use TheFrosty\WpX402\Models\PaymentRequired;
 use TheFrosty\WpX402\Models\PaymentRequired\Accepts;
-use TheFrosty\WpX402\Models\PaymentRequired\Resource;
+use TheFrosty\WpX402\Models\PaymentRequired\UrlResource;
 use TheFrosty\WpX402\Networks\Mainnet;
 use TheFrosty\WpX402\Networks\Testnet;
 use TheFrosty\WpX402\ServiceProvider;
@@ -94,9 +94,9 @@ class ForBots extends AbstractPaywall
             PaymentRequired::VERSION => 2,
             PaymentRequired::ERROR => esc_html__('PAYMENT-SIGNATURE header is required', 'wp-x402'),
             PaymentRequired::RESOURCE => [
-                Resource::URL => get_permalink(),
-                Resource::DESCRIPTION => '',
-                Resource::MIME_TYPE => 'text/html',
+                UrlResource::URL => get_permalink(),
+                UrlResource::DESCRIPTION => '',
+                UrlResource::MIME_TYPE => 'text/html',
             ],
             PaymentRequired::ACCEPTS => [
                 Accepts::SCHEME => 'exact',
@@ -129,7 +129,7 @@ class ForBots extends AbstractPaywall
                 ]
             );
             // Telemetry: Impression.
-            telemetry(EventType::REQUIRED, [Resource::URL => $payment_required->getResource()->getUrl()]);
+            telemetry(EventType::REQUIRED, [UrlResource::URL => $payment_required->getResource()->getUrl()]);
             exitOrThrow();
         }
 

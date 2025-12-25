@@ -7,10 +7,10 @@ namespace TheFrosty\WpX402\Models\PaymentRequired;
 use TheFrosty\WpUtilities\Models\BaseModel;
 
 /**
- * Class Resource
+ * Class UrlResource
  * @package TheFrosty\WpX402\Models
  */
-class Resource extends BaseModel
+class UrlResource extends BaseModel
 {
 
     public const string URL = 'url';
