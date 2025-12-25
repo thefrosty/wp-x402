@@ -5,6 +5,9 @@ declare(strict_types=1);
 namespace TheFrosty\WpX402\Models;
 
 use TheFrosty\WpUtilities\Models\BaseModel;
+use TheFrosty\WpX402\Models\PaymentRequired\Accepts;
+use TheFrosty\WpX402\Models\PaymentRequired\Payload;
+use TheFrosty\WpX402\Models\PaymentRequired\Resource;
 
 /**
  * Class PaymentRequired
@@ -13,23 +16,29 @@ use TheFrosty\WpUtilities\Models\BaseModel;
 class PaymentRequired extends BaseModel
 {
 
-    protected int $version = 2;
+    public const string VERSION = 'x402Version';
+    public const string ERROR = 'error';
+    public const string RESOURCE = 'resource';
+    public const string ACCEPTS = 'accepts';
+    public const string PAYLOAD = 'payload';
 
-    public function getVersion(): int
+    protected int $x402Version;
+
+    public function getX402Version(): int
     {
-        return $this->version;
+        return $this->x402Version;
     }
 
-    public function setVersion(int $version): void
+    public function setX402Version(int $x402Version): void
     {
-        $this->version = $version;
+        $this->x402Version = $x402Version;
     }
 
-    protected ?string $error;
+    protected string $error;
 
     public function getError(): string
     {
-        return $this->error ?? esc_html__('PAYMENT-SIGNATURE header is required', 'wp-x402');
+        return $this->error;
     }
 
     public function setError(string $error): void
@@ -59,5 +68,28 @@ class PaymentRequired extends BaseModel
     public function setAccepts(array $accepts): void
     {
         $this->accepts[] = new Accepts($accepts);
+    }
+
+    protected ?Payload $payload = null;
+
+    public function getPayload(): ?Payload
+    {
+        return $this->payload;
+    }
+
+    public function setPayload(?array $payload): void
+    {
+        $this->payload = new Payload($payload);
+    }
+
+    protected function getSerializableFields(): array
+    {
+        return [
+            self::VERSION,
+            self::ERROR,
+            self::RESOURCE,
+            self::ACCEPTS,
+            self::PAYLOAD,
+        ];
     }
 }
