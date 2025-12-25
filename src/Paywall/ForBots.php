@@ -25,6 +25,7 @@ use function status_header;
 use function strip_tags;
 use function TheFrosty\WpUtilities\exitOrThrow;
 use function TheFrosty\WpX402\telemetry;
+use function wp_remote_retrieve_body;
 use function wp_remote_retrieve_response_code;
 
 /**
@@ -131,7 +132,10 @@ class ForBots extends AbstractPaywall
                 'date' => get_the_date('c', $post),
             ];
             $data = apply_filters('wp_x402_response_data', $data, $post);
-            $this->sendJsonResponse($data, WP_Http::ACCEPTED);
+            $headers = [
+                'X-PAYMENT-RESPONSE' => wp_remote_retrieve_body($response),
+            ];
+            $this->sendJsonResponse($data, WP_Http::ACCEPTED, $headers);
 
             // Telemetry: Success.
             telemetry(EventType::SUCCESS, ['hash' => $payment_hash]);

@@ -24,4 +24,6 @@ enum Testnet: string implements Network
 
     case BASE = 'eip155:84532';
     case SOLANA = 'solana:EtWTRABZaYq6iMfeYKouRu166VU2xqa1';
+
+    case FACILITATOR = 'https://x402.org/facilitator';
 }
