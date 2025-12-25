@@ -23,4 +23,6 @@ enum Mainnet: string implements Network
 
     case BASE = 'eip155:8453';
     case SOLANA = 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp';
+
+    case FACILITATOR = 'https://api.cdp.coinbase.com/platform/v2/x402';
 }
