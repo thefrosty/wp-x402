@@ -22,14 +22,14 @@ class PaymentRequired extends BaseModel
     public const string ACCEPTS = 'accepts';
     public const string PAYLOAD = 'payload';
 
-    protected int $x402Version;
+    protected int $x402Version = 2;
 
     public function getX402Version(): int
     {
         return $this->x402Version;
     }
 
-    public function setX402Version(int $x402Version): void
+    public function setX402Version(int $x402Version = 2): void
     {
         $this->x402Version = $x402Version;
     }
@@ -58,8 +58,10 @@ class PaymentRequired extends BaseModel
         $this->resource = new UrlResource($resource);
     }
 
+    /** @var Accepts[] $accepts */
     protected array $accepts;
 
+    /** @return Accepts[] */
     public function getAccepts(): array
     {
         return $this->accepts;
@@ -67,7 +69,9 @@ class PaymentRequired extends BaseModel
 
     public function setAccepts(array $accepts): void
     {
-        $this->accepts[] = new Accepts($accepts);
+        foreach ($accepts as $accept) {
+            $this->accepts[] = new Accepts($accept);
+        }
     }
 
     protected ?Payload $payload = null;
