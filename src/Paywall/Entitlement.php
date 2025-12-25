@@ -29,6 +29,7 @@ enum Entitlement: string
      */
     public function label(): string
     {
+        // phpcs:ignore PHPCompatibility.Variables.ForbiddenThisUseContexts.OutsideObjectContext
         return match ($this) {
             self::DIGITAL => esc_html__('Digital Access', 'wp-x402'),
             self::PAYMENT_REQUIRED => esc_html__('Payment Required', 'wp-x402'),
